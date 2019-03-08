@@ -153,9 +153,10 @@ namespace WorkZoneLoad
             Console.WriteLine("Total de asignaciones realizadas {0} ", addworkzone);
             Console.WriteLine("Total de asignaciones reemplazadas {0} ", replaceworkzone);
             Console.WriteLine("Total Minutos " + stopwatch.Elapsed.TotalMinutes);
+            Console.WriteLine(" Tiempo aproximado por petición es de : " + (stopwatch.Elapsed.TotalSeconds / addworkzone).ToString() + " segundos");
             Logger(" Zonas Agregadas: " + addworkzone);
             Logger(" Minutos: " + stopwatch.Elapsed.TotalMinutes.ToString());
-            Logger(" Tiempo aproximado por petición es de : " + (addworkzone / stopwatch.Elapsed.TotalSeconds).ToString() + " segundos");
+            Logger(" Tiempo aproximado por petición es de : " + (stopwatch.Elapsed.TotalSeconds / addworkzone).ToString() + " segundos");
             Logger(DateTime.Now.ToString());
             Logger(" End ");
             Logger("----------------------------------------------------------------------------------");
