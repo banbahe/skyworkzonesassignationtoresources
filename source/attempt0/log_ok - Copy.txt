@@ -1,0 +1,3 @@
+WorkZoneController.cs
+Line 37
+Program.Logger(string.Format(";Resource:{0};WorZone{1};StartDate:{2};EndDate:{3};", resource, workZone, dateTimeStart.ToString("yyyy-MM-dd"), dateTimeEnd.ToString("yyyy-MM-dd")), LoggerOpcion.OK);

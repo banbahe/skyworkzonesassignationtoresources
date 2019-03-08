@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,16 +30,19 @@ namespace WorkZoneLoad.Controller
                 ResponseOFSC result = UtilWebRequest.SendWayAsync(string.Format("rest/ofscCore/v1/resources/{0}/workZones", resource),
                                                                   enumMethod.POST,
                                                                   rss.ToString(Formatting.None));
+                result.Content = result.Content.Replace("\n", string.Empty);
 
-                if (result.statusCode >= 200 && result.statusCode <= 300)
+                if (result.statusCode >= 200 && result.statusCode < 300)
                 {
-                    Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: se agrego correctamente", resource, workZone), LoggerOpcion.OK);
+                    Console.WriteLine(string.Format("* Se agrego al recurso {0} el código postal {1} del {2} al {3}", resource, workZone, dateTimeStart.ToString("yyyy-MM-dd"), dateTimeEnd.ToString("yyyy-MM-dd")));
+                    Program.Logger(string.Format(";Resource:{0};WorZone:{1};StartDate:{2};EndDate:{3};", resource, workZone, dateTimeStart.ToString("yyyy-MM-dd"), dateTimeEnd.ToString("yyyy-MM-dd")), LoggerOpcion.OK);
+                    Program.addworkzone += 1;
                     flag = true;
                 }
                 else
                 {
-                    Console.WriteLine(string.Format("* No se asigno zona;Recurso {0}      zona de trabajo {1}      mensaje: {2}|{3}", resource, workZone, result.Content, result.ErrorMessage));
-                    Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: {2}|{3}", resource, workZone, result.Content, result.ErrorMessage), LoggerOpcion.ERROR);
+                    // Console.WriteLine(string.Format("* No se asigno zona;Recurso {0}      zona de trabajo {1}      mensaje: {2}|{3}", resource, workZone, result.Content, result.ErrorMessage));    
+                    Program.Logger(string.Format(";Resource:{0};WorkZone:{1};Message:{2}|{3};", resource, workZone, result.Content, result.ErrorMessage), LoggerOpcion.ERROR);
                     flag = false;
                 }
             }
@@ -219,7 +223,8 @@ namespace WorkZoneLoad.Controller
 
                 if (result.statusCode >= 200 && result.statusCode <= 300)
                 {
-                    Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: se borro correctamente", resourceId, workZone.workZone), LoggerOpcion.BORRO);
+                    string tmpZipCode = workZone.workZone;
+                    Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: se borro correctamente", resourceId, tmpZipCode), LoggerOpcion.BORRO);
                     flag = true;
                 }
                 else
@@ -245,20 +250,26 @@ namespace WorkZoneLoad.Controller
 
             if (result.statusCode == 200)
             {
+
                 JObject o = JObject.Parse(result.Content);
                 var aitems = o["items"];
+                Console.Clear();
+                Console.WriteLine("* Obtiene zonas de trabajo de " + externalid);
+                Console.WriteLine("Obteniendo informacion de un total " + aitems.Count().ToString() + " codigos postales");
+                int tmpCount = 0;
                 foreach (var item in aitems)
                 {
                     try
                     {
-                        Console.Clear();
-                        Console.WriteLine(item["workZoneItemId"].ToString());
+                        // Console.WriteLine(item["workZoneItemId"].ToString());
                         WorkZone workZone = new WorkZone();
                         workZone.workZoneItemId = item["workZoneItemId"].ToString();
                         workZone.workZone = item["workZone"].ToString();
                         workZone.startDate = item["startDate"].ToString();
                         workZone.endDate = item["endDate"] == null ? DateTime.Now.AddYears(-1) : DateTime.Parse(item["endDate"].ToString());
                         listWorkZone.Add(workZone);
+                        tmpCount += 1;
+                        Console.WriteLine(tmpCount + " de total de " + aitems.Count().ToString());
                     }
                     catch (Exception ex)
                     {
@@ -279,39 +290,49 @@ namespace WorkZoneLoad.Controller
 
             try
             {
-                ResponseOFSC result = UtilWebRequest.SendWayAsync("rest/ofscMetadata/v1/workZones?limit=1&offset=0",
-                                                         enumMethod.GET,
-                                                         string.Empty);
-                if (result.statusCode == 200)
+                string fileDB = Directory.GetCurrentDirectory() + "\\db.json";
+
+                if (File.Exists(fileDB))
                 {
-                    JObject o = JObject.Parse(result.Content);
-                    int tmpLimit = 500;
-                    double totalItems = (int)o["totalResults"];
-                    double iteration = totalItems / tmpLimit;
-
-                    iteration = Math.Ceiling(iteration);
-                    //Console.WriteLine("Total de zonas de trabajo disponibles " + totalItems);
-                    //Console.WriteLine("Total de iteraciones " + iteration);
-                    //iteration = 54;
-                    for (int i = 0; i < iteration; i++)
+                    List<WorkZone> listWorkZoneTmp = JsonConvert.DeserializeObject<List<WorkZone>>(File.ReadAllText(fileDB));
+                    return listWorkZoneTmp;
+                }
+                else
+                {
+                    ResponseOFSC result = UtilWebRequest.SendWayAsync("rest/ofscMetadata/v1/workZones?limit=1&offset=0", enumMethod.GET, string.Empty);
+                    if (result.statusCode == 200)
                     {
-                        Console.Clear();
-                        Console.WriteLine("Total de zonas de trabajo disponibles " + totalItems);
-                        Console.WriteLine("Total de iteraciones " + iteration + " de 1000");
-                        Console.WriteLine(string.Format("{0} %", (i * tmpLimit) / totalItems));
+                        JObject o = JObject.Parse(result.Content);
+                        int tmpLimit = 500;
+                        double totalItems = (int)o["totalResults"];
+                        double iteration = totalItems / tmpLimit;
 
-                        // int ilimit = 1000;
-                        int offset = i == 0 ? 0 : (tmpLimit * i);
-                        string endpoint = string.Format("rest/ofscMetadata/v1/workZones?limit={0}&offset={1}", tmpLimit, offset);
-                        ResponseOFSC resultDynamic = UtilWebRequest.SendWayAsync(endpoint, enumMethod.GET, string.Empty);
+                        iteration = Math.Ceiling(iteration);
+                        //Console.WriteLine("Total de zonas de trabajo disponibles " + totalItems);
+                        //Console.WriteLine("Total de iteraciones " + iteration);
+                        //iteration = 54;
+                        for (int i = 0; i < iteration; i++)
+                        {
+                            Console.Clear();
+                            Console.WriteLine("Total de zonas de trabajo disponibles " + totalItems);
+                            Console.WriteLine("Total de iteraciones " + iteration + " de 1000");
+                            Console.WriteLine(string.Format("{0} %", (i * tmpLimit) / totalItems));
 
-                        JObject items = JObject.Parse(resultDynamic.Content);
+                            // int ilimit = 1000;
+                            int offset = i == 0 ? 0 : (tmpLimit * i);
+                            string endpoint = string.Format("rest/ofscMetadata/v1/workZones?limit={0}&offset={1}", tmpLimit, offset);
+                            ResponseOFSC resultDynamic = UtilWebRequest.SendWayAsync(endpoint, enumMethod.GET, string.Empty);
 
-                        List<WorkZone> listWorkZoneTmp = JsonConvert.DeserializeObject<List<WorkZone>>(items["items"].ToString());
-                        listWorkZone.AddRange(listWorkZoneTmp);
+                            JObject items = JObject.Parse(resultDynamic.Content);
 
-
+                            List<WorkZone> listWorkZoneTmp = JsonConvert.DeserializeObject<List<WorkZone>>(items["items"].ToString());
+                            // Program.Logger(JsonConvert.SerializeObject(listWorkZoneTmp), LoggerOpcion.DB);
+                            listWorkZone.AddRange(listWorkZoneTmp);
+                        }
                     }
+
+                    if (listWorkZone.Count > 0)
+                        Program.Logger(JsonConvert.SerializeObject(listWorkZone), LoggerOpcion.DB);
                 }
             }
             catch (Exception ex)
@@ -321,5 +342,34 @@ namespace WorkZoneLoad.Controller
 
             return listWorkZone;
         }
+    }
+
+    public class ResourceController
+    {
+        public bool Exist(string resourceId, out string content)
+        {
+            try
+            {
+                // check exist
+                var result = UtilWebRequest.SendWayAsync("rest/ofscCore/v1/resources/" + resourceId,
+                                            enumMethod.GET,
+                                            string.Empty);
+
+                result.Content = result.Content.Replace("\n", string.Empty);
+                content = result.Content;
+
+                if (result.statusCode >= 200 && result.statusCode < 300)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                content = string.Concat("Error Excepction {0} details {1} ", ex.Message, ex.InnerException.Message);
+                return false;
+            }
+        }
+
+
     }
 }

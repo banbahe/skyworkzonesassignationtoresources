@@ -1,0 +1,9 @@
+2019-03-07 5:00:34 PM : ----------------------------------------------------------------------------------
+2019-03-07 5:00:34 PM : Inicio del proceso para instancia con el token Basic YThhM2VjMmIzNjQxNTkzYTM5MjVlNjQ5MGJjMjg0ZGFlNjhmMDk5MzZAc2t5LW14Mi50ZXN0OjIyOTc5NTkwZjI0OTEwYTY4NDgwZjQ4MzcyYzFhOGE4NmVlNWM3OTdjMjI5Y2U5MjE1ZmFkZmNlN2FhZjE1YzY=
+2019-03-07 5:00:34 PM : 2019-03-07 5:00:34 PM
+2019-03-07 5:04:07 PM : Milisegundos 213384.1303
+2019-03-07 5:04:07 PM : Segundos 213.3841303
+2019-03-07 5:04:08 PM : Minutos 3.55640217166667
+2019-03-07 5:04:08 PM : 2019-03-07 5:04:08 PM
+2019-03-07 5:04:08 PM :  End 
+2019-03-07 5:04:08 PM : ----------------------------------------------------------------------------------

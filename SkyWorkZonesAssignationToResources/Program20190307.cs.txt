@@ -1,4 +1,4 @@
-锘縰sing System;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using WorkZoneLoad.Controller;
 using WorkZoneLoad.Models;
 
-using System.Net;
-
 namespace WorkZoneLoad
 {
     public enum LoggerOpcion
@@ -18,8 +16,7 @@ namespace WorkZoneLoad
         OK = 1,
         ERROR = 2,
         LOG = 0,
-        BORRO = 3,
-        DB = 4,
+        BORRO = 3
     }
 
     public enum HttpStatus
@@ -29,7 +26,6 @@ namespace WorkZoneLoad
     }
     public class Program
     {
-        public static int addworkzone { get; set; }
         private static List<WorkZone> listWorkZone = new List<WorkZone>();
         private static List<WorkZone> listWorkZoneActive = new List<WorkZone>();
         private static List<WorkZone> listWorkZoneInactive = new List<WorkZone>();
@@ -39,10 +35,7 @@ namespace WorkZoneLoad
         public static string sPath { get; set; } = @"C:\Users\inmotion\Documents\bitbucket\ofsc\skymx\code\html";
         static void Main(string[] args)
         {
-            // **************************************************************
-            // DOWNLOAD DB
-
-            Console.WriteLine(" Ingrese Ubicaci贸n (Folder) en donde buscar archivos");
+            Console.WriteLine(" Ingrese Ubicaci髇 (Folder) en donde buscar archivos");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine(" Por ejemplo C:\\Users\\inmotion\\Documents\\z");
             Console.ResetColor();
@@ -54,7 +47,7 @@ namespace WorkZoneLoad
             {
                 Console.Clear();
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(string.Format("Ubicaci贸n no valida {0}", sPath));
+                Console.WriteLine(string.Format("Ubicaci髇 no valida {0}", sPath));
                 Thread.Sleep(1800);
                 Console.ResetColor();
                 throw new Exception(" x=> { x.id = 'error' }");
@@ -62,18 +55,22 @@ namespace WorkZoneLoad
             //ReadCSV(sPath);
             //// Fill Object
             //Split();
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             Console.WriteLine("Obteniendo Zonas de Trabajo disponibles " + DateTime.Now);
             // *****************************************************************
-            // Get all workzone from OFSC
+            // Get all workzone
             WorkZoneController ctrlWorkZone = new WorkZoneController();
             listWorkZone = ctrlWorkZone.GetAll();
             Console.WriteLine("Termino de obtener Zonas de Trabajo disponibles " + listWorkZone.Count() + "  " + DateTime.Now);
+            // listWorkZoneInactive = (listWorkZone.Where(x => x.status == "inactive").ToList());
             listWorkZoneActive = listWorkZone.Where(x => x.status == "active").ToList();
+            // end
+            // *****************************************************************
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             Console.Clear();
             Logger("----------------------------------------------------------------------------------");
             string token = ConfigurationManager.AppSettings["execute"];
+
             Logger("Inicio del proceso para instancia con el token " + token);
             Logger(DateTime.Now.ToString());
             Console.WriteLine("Leyendo archivos CSV");
@@ -81,27 +78,18 @@ namespace WorkZoneLoad
             ReadCSV(sPath);
             // Fill Object
             Split();
-            Console.WriteLine("Se asignaran zonas de trabajo a un total de " + listResource.Count + " recursos");
-            // int addworkzone = 0;
+            Console.WriteLine("Se asignaran zonas de trabajo a " + listResource.Count + " recursos");
+            int addworkzone = 0;
             int replaceworkzone = 0;
             foreach (var resource in listResource)
             {
                 // Obtiene zonas de trabajo de recurso
                 WorkZoneController workZoneController = new WorkZoneController();
-                ResourceController resourceController = new ResourceController();
                 Console.Clear();
                 Console.WriteLine("---------------------------------------------------");
                 Console.WriteLine(" Recurso " + resource.externalId);
 
-                // Check if exist resource
-                string tmpContent = string.Empty;
-                if (!resourceController.Exist(resource.externalId, out tmpContent))
-                {
-                    Program.Logger(string.Format(";Resource:{0};WorkZone:;Message:Recurso no existe|{1};", resource, tmpContent), LoggerOpcion.ERROR);
-                    continue;
-                }
-
-                // List<WorkZone> listWorkZonesCurrent = new List<WorkZone>();
+                List<WorkZone> listWorkZonesCurrent = new List<WorkZone>();
                 List<string> listWorkZonesCSV = workZoneController.Ranges(resource.workZone);
 
                 if (listWorkZonesCSV.Count > 0)
@@ -117,45 +105,61 @@ namespace WorkZoneLoad
                             continue;
                     }
 
-                    var addItems = listTmpWorkZoneCSV;
+                    listWorkZonesCurrent = workZoneController.Get(resource.externalId);
+                    List<string> listWorkZoneCurrentTmp = listWorkZonesCurrent.Select(x => x.workZone).ToList();
+                    List<string> listWorkZoneCurrentTmpDelete = listWorkZonesCurrent.Where(x => x.endDate >= DateTime.Now.AddMonths(-6)).Select(x => x.workZone).ToList();
+                    var deleteItems = listWorkZoneCurrentTmpDelete.Except(listTmpWorkZoneCSV).ToList();
+                    var addItems = listTmpWorkZoneCSV.Except(listWorkZoneCurrentTmp).ToList();
 
                     // delete item
                     if (resource.workZone.replace)
                     {
                         Console.WriteLine("Reemplazando zonas de trabajo del recurso {0} ", resource.externalId);
-                        var deleteItems = workZoneController.Get(resource.externalId);
 
                         foreach (var itemZipCode in deleteItems)
                         {
-                            if (workZoneController.Delete(itemZipCode, resource.externalId))
+                            var tmp = listWorkZonesCurrent.FirstOrDefault(x => x.workZone == itemZipCode);
+                            if (workZoneController.Delete(tmp, resource.externalId))
                             {
                                 replaceworkzone = replaceworkzone + 1;
-                                Console.Clear();
-                                Console.WriteLine(string.Format("* Reemplazando cobertura del recurso {0}", resource.externalId));
-                            }
+                                Console.WriteLine(string.Format("* Se borro correctamente del recurso {0} el c骴igo postal {1}", resource.externalId, itemZipCode));
 
+                            }
+                            else
+                                Console.WriteLine(string.Format("* No logro borrar del recurso {0} el c骴igo postal {1}", resource.externalId, itemZipCode));
                         }
                     }
 
                     // add item
                     Console.WriteLine("Agregando zonas de trabajo del recurso {0} ", resource.externalId);
                     foreach (string itemWorkZoneAdd in addItems)
-                        workZoneController.Add(resource.externalId, itemWorkZoneAdd);
+                    {
+                        if (workZoneController.Add(resource.externalId, itemWorkZoneAdd))
+                        {
+                            Console.WriteLine(string.Format("* Se agrego correctamente al recurso {0} el c骴igo postal {1}", resource.externalId, itemWorkZoneAdd));
+                            addworkzone = addworkzone + 1;
+                        }
 
+                        //else
+                        //    Console.WriteLine(string.Format("* No logro asignar del recurso {0} el c骴igo postal {1}", resource.externalId, itemWorkZoneAdd));
+                    }
 
                 }
             }
             // multitask 
             stopwatch.Stop();
             Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = ConsoleColor.Red;
+
             Console.WriteLine("Ha terminado de asignar a {0} recursos ", listResource.Count);
             Console.WriteLine("Total de asignaciones realizadas {0} ", addworkzone);
             Console.WriteLine("Total de asignaciones reemplazadas {0} ", replaceworkzone);
-            Console.WriteLine("Total Minutos " + stopwatch.Elapsed.TotalMinutes);
-            Logger(" Zonas Agregadas: " + addworkzone);
-            Logger(" Minutos: " + stopwatch.Elapsed.TotalMinutes.ToString());
-            Logger(" Tiempo aproximado por petici贸n es de : " + (addworkzone / stopwatch.Elapsed.TotalSeconds).ToString() + " segundos");
+            Console.WriteLine("Se tardo en Milisegundos " + stopwatch.Elapsed.TotalMilliseconds);
+            Console.WriteLine("Se tardo en Segundos " + stopwatch.Elapsed.TotalSeconds);
+            Console.WriteLine("Se tardo en Minutos " + stopwatch.Elapsed.TotalMinutes);
+            Logger("Milisegundos " + stopwatch.Elapsed.TotalMilliseconds.ToString());
+            Logger("Segundos " + stopwatch.Elapsed.TotalSeconds.ToString());
+            Logger("Minutos " + stopwatch.Elapsed.TotalMinutes.ToString());
             Logger(DateTime.Now.ToString());
             Logger(" End ");
             Logger("----------------------------------------------------------------------------------");
@@ -265,8 +269,8 @@ namespace WorkZoneLoad
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(string.Format("Error  al leer el archivo {0} : Exepci贸n :{1}", item, ex.Message));
-                    Logger(string.Format("Error  al leer el archivo {0} : Exepci贸n :{1}", item, ex.Message));
+                    Console.WriteLine(string.Format("Error  al leer el archivo {0} : Exepci髇 :{1}", item, ex.Message));
+                    Logger(string.Format("Error  al leer el archivo {0} : Exepci髇 :{1}", item, ex.Message));
                     throw;
                 }
             }
@@ -349,21 +353,19 @@ namespace WorkZoneLoad
                         temppath = @sPath + "\\log_ok.txt";
                         break;
                     case 2:
+                        // temppath = @sPath + "\\log_not.txt";
+                        // break;
                         temppath = @sPath + "\\log_error.txt";
                         break;
                     case 3:
                         temppath = @sPath + "\\log_reemplar.txt";
                         break;
-                    case 4:
-                        temppath = Directory.GetCurrentDirectory() + "\\db.json";
-                        break;
                     default:
                         temppath = @sPath + "\\log.txt";
                         break;
                 }
-
                 System.IO.StreamWriter file = new System.IO.StreamWriter(temppath, true);
-                file.WriteLine((int)loggerOpcion == 4 ? lines : DateTime.Now + " : " + lines);
+                file.WriteLine(DateTime.Now + " : " + lines);
                 file.Close();
             }
             catch
