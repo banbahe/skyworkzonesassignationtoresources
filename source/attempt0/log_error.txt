@@ -1,1 +1,0 @@
-2019-03-07 5:00:34 PM : * dont marred item parent id {0} and external id {1} no working but continue process, details: {2}Index was outside the bounds of the array.

@@ -12,4 +12,19 @@ namespace WorkZoneLoad.Models
         public string Content { get; set; }
         public string ErrorMessage { get; set; }
     }
+
+    // public class Item
+   
+    public class Link
+    {
+        public string rel { get; set; }
+        public string href { get; set; }
+    }
+
+    public class RootObject
+    {
+        public List<WorkZone> items { get; set; }
+        public int totalResults { get; set; }
+        public List<Link> links { get; set; }
+    }
 }

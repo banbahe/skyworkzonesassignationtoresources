@@ -35,20 +35,18 @@ namespace WorkZoneLoad.Controller
                 if (result.statusCode >= 200 && result.statusCode < 300)
                 {
                     Console.WriteLine(string.Format("* Se agrego al recurso {0} el código postal {1} del {2} al {3}", resource, workZone, dateTimeStart.ToString("yyyy-MM-dd"), dateTimeEnd.ToString("yyyy-MM-dd")));
-                    Program.Logger(string.Format(";Resource:{0};WorZone:{1};StartDate:{2};EndDate:{3};", resource, workZone, dateTimeStart.ToString("yyyy-MM-dd"), dateTimeEnd.ToString("yyyy-MM-dd")), LoggerOpcion.OK);
                     Program.addworkzone += 1;
                     flag = true;
                 }
                 else
                 {
-                    // Console.WriteLine(string.Format("* No se asigno zona;Recurso {0}      zona de trabajo {1}      mensaje: {2}|{3}", resource, workZone, result.Content, result.ErrorMessage));    
-                    Program.Logger(string.Format(";Resource:{0};WorkZone:{1};Message:{2}|{3};", resource, workZone, result.Content, result.ErrorMessage), LoggerOpcion.ERROR);
+                    Program.Logger(string.Format("{0} : {1} | {2};", resource, result.Content, result.ErrorMessage), LoggerOpcion.ERROR);
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
-                Program.Logger("Error en la clase.metodo WorkZoneController.Add " + ex.Message);
+                Console.WriteLine("Error en la clase.metodo WorkZoneController.Add " + ex.Message);
             }
             return flag;
         }
@@ -224,18 +222,18 @@ namespace WorkZoneLoad.Controller
                 if (result.statusCode >= 200 && result.statusCode <= 300)
                 {
                     string tmpZipCode = workZone.workZone;
-                    Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: se borro correctamente", resourceId, tmpZipCode), LoggerOpcion.BORRO);
+                    // Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: se borro correctamente", resourceId, tmpZipCode), LoggerOpcion.BORRO);
                     flag = true;
                 }
                 else
                 {
-                    Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: {2}|{3}", resourceId, workZone.workZone, result.Content, result.ErrorMessage), LoggerOpcion.ERROR);
+                    //  Program.Logger(string.Format("Recurso {0}      zona de trabajo {1}      mensaje: {2}|{3}", resourceId, workZone.workZone, result.Content, result.ErrorMessage), LoggerOpcion.ERROR);
                     flag = false;
                 }
             }
             catch (Exception ex)
             {
-                Program.Logger("bool Delete " + ex.Message);
+                // Program.Logger("bool Delete " + ex.Message);
             }
             return flag;
         }
@@ -250,36 +248,53 @@ namespace WorkZoneLoad.Controller
 
             if (result.statusCode == 200)
             {
+                RootObject rootObject = JsonConvert.DeserializeObject<RootObject>(result.Content);
+                listWorkZone.AddRange(rootObject.items);
 
-                JObject o = JObject.Parse(result.Content);
-                var aitems = o["items"];
-                Console.Clear();
-                Console.WriteLine("* Obtiene zonas de trabajo de " + externalid);
-                Console.WriteLine("Obteniendo informacion de un total " + aitems.Count().ToString() + " codigos postales");
-                int tmpCount = 0;
-                foreach (var item in aitems)
-                {
-                    try
-                    {
-                        // Console.WriteLine(item["workZoneItemId"].ToString());
-                        WorkZone workZone = new WorkZone();
-                        workZone.workZoneItemId = item["workZoneItemId"].ToString();
-                        workZone.workZone = item["workZone"].ToString();
-                        workZone.startDate = item["startDate"].ToString();
-                        workZone.endDate = item["endDate"] == null ? DateTime.Now.AddYears(-1) : DateTime.Parse(item["endDate"].ToString());
-                        listWorkZone.Add(workZone);
-                        tmpCount += 1;
-                        Console.WriteLine(tmpCount + " de total de " + aitems.Count().ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("* Details " + ex.Message);
-                        Program.Logger("List<WorkZone> Get(string externalid) " + ex.Message);
-                    }
-                }
+                //
+                //JObject o = JObject.Parse(result.Content);
+                //var aitems = o["items"];
+                //Console.Clear();
+                //Console.WriteLine("* Obtiene zonas de trabajo de " + externalid);
+                //Console.WriteLine("Obteniendo informacion de un total " + aitems.Count().ToString() + " codigos postales");
+                //int tmpCount = 0;
+                //foreach (var item in aitems)
+                //{
+                //    try
+                //    {
+                //        // Console.WriteLine(item["workZoneItemId"].ToString());
+                //        WorkZone workZone = new WorkZone();
+                //        workZone.workZoneItemId = item["workZoneItemId"].ToString();
+                //        workZone.workZone = item["workZone"].ToString();
+                //        workZone.startDate = item["startDate"].ToString();
+                //        workZone.endDate = item["endDate"] == null ? DateTime.Now.AddYears(-1) : DateTime.Parse(item["endDate"].ToString());
+                //        listWorkZone.Add(workZone);
+                //        tmpCount += 1;
+                //        Console.WriteLine(tmpCount + " de total de " + aitems.Count().ToString());
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Console.WriteLine("* Details " + ex.Message);
+                //        // Program.Logger("List<WorkZone> Get(string externalid) " + ex.Message);
+                //    }
+                //}
             }
 
             return listWorkZone;
+        }
+
+        public void LogWorkzonesOK(string externalid)
+        {
+            List<WorkZone> listWorkZone = new List<WorkZone>();
+
+            var result = UtilWebRequest.SendWayAsync("rest/ofscCore/v1/resources/" + externalid + "/workZones",
+                                       enumMethod.GET,
+                                       externalid);
+
+            if (result.statusCode == 200)
+            {
+                Program.Logger(externalid + " :" + JsonConvert.SerializeObject(result.Content, Formatting.None), LoggerOpcion.RESOURCE_WORKZONE);
+            }
         }
 
         public List<WorkZone> GetAll()

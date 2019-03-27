@@ -20,6 +20,7 @@ namespace WorkZoneLoad
         LOG = 0,
         BORRO = 3,
         DB = 4,
+        RESOURCE_WORKZONE = 5,
     }
 
     public enum HttpStatus
@@ -43,10 +44,12 @@ namespace WorkZoneLoad
             // DOWNLOAD DB
 
             Console.WriteLine(" Ingrese Ubicación (Folder) en donde buscar archivos");
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.WriteLine(" Por ejemplo C:\\Users\\inmotion\\Documents\\z");
-            Console.ResetColor();
-            sPath = Console.ReadLine();
+            // Console.ResetColor();
+            // sPath = Console.ReadLine();
+            sPath = ConfigurationManager.AppSettings["filepath"];
+
 
             if (Directory.Exists(sPath))
                 Console.WriteLine("Leyendo archivos CSV");
@@ -133,7 +136,6 @@ namespace WorkZoneLoad
                                 Console.Clear();
                                 Console.WriteLine(string.Format("* Reemplazando cobertura del recurso {0}", resource.externalId));
                             }
-
                         }
                     }
 
@@ -142,6 +144,7 @@ namespace WorkZoneLoad
                     foreach (string itemWorkZoneAdd in addItems)
                         workZoneController.Add(resource.externalId, itemWorkZoneAdd);
 
+                    workZoneController.LogWorkzonesOK(resource.externalId);
 
                 }
             }
@@ -358,13 +361,20 @@ namespace WorkZoneLoad
                     case 4:
                         temppath = Directory.GetCurrentDirectory() + "\\db.json";
                         break;
+                    case 5:
+                        temppath = @sPath + "\\log_recurso_zonas_trabajo_ok.txt";
+                        break;
+                    case 6:
+                        temppath = @sPath + "\\log_recurso_zonas_trabajo_error.txt";
+                        break;
                     default:
                         temppath = @sPath + "\\log.txt";
                         break;
                 }
 
                 System.IO.StreamWriter file = new System.IO.StreamWriter(temppath, true);
-                file.WriteLine((int)loggerOpcion == 4 ? lines : DateTime.Now + " : " + lines);
+                // file.WriteLine((int)loggerOpcion == 4 ? lines : DateTime.Now + " : " + lines);
+                file.WriteLine(lines);
                 file.Close();
             }
             catch
