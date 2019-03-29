@@ -1,9 +1,0 @@
-2019-03-07 6:11:10 PM : ----------------------------------------------------------------------------------
-2019-03-07 6:11:10 PM : Inicio del proceso para instancia con el token Basic YThhM2VjMmIzNjQxNTkzYTM5MjVlNjQ5MGJjMjg0ZGFlNjhmMDk5MzZAc2t5LW14OjAwZTVlZTRkNmI2ODc0NTQ0NDI3ZDZlMGM3ZDg1YWY4ZDdiNDQzM2E4MzE1ZGQ3NzllYWEzM2QyYmM4NGY0NDk=
-2019-03-07 6:11:10 PM : 2019-03-07 6:11:10 PM
-2019-03-07 6:21:50 PM :  Zonas Agregadas: 1420
-2019-03-07 6:21:50 PM :  Minutos: 10.6763188016667
-2019-03-07 6:21:50 PM :  Tiempo aproximado por petición es de : 2.2167440956308 segundos
-2019-03-07 6:21:50 PM : 2019-03-07 6:21:50 PM
-2019-03-07 6:21:50 PM :  End 
-2019-03-07 6:21:50 PM : ----------------------------------------------------------------------------------

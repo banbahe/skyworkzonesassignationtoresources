@@ -1,2 +1,0 @@
-2019-03-07 10:30:52 PM : ;Resource:WorkZoneLoad.Models.Resource;WorkZone:;Message:Recurso no existe|API-Portal: Authentication failed;
-2019-03-07 10:31:23 PM : ;Resource:WorkZoneLoad.Models.Resource;WorkZone:;Message:Recurso no existe|API-Portal: Authentication failed;

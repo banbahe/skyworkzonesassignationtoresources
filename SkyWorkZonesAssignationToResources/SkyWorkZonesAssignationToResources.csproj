@@ -6,9 +6,9 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C42084EC-BBAE-4154-BF5C-A033BDD94189}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SkyWorkZonesAssignationToResources</RootNamespace>
-    <AssemblyName>SkyWorkZonesAssignationToResources</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RootNamespace>SkyCoverageToResources</RootNamespace>
+    <AssemblyName>SkyCoverageToResources</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <PublishUrl>publish\</PublishUrl>
@@ -26,6 +26,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,7 +48,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Papirus-Team-Papirus-Places-Folder-blue-visiting.ico</ApplicationIcon>
+    <ApplicationIcon>SKY-3d.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup />
+  <PropertyGroup>
+    <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -74,10 +80,10 @@
     <Compile Include="Models\Resource.cs" />
     <Compile Include="Models\ResponseOFSC.cs" />
     <Compile Include="Models\WorkZone.cs" />
-    <Content Include="Program20190307.cs.txt" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\UtilWebRequest.cs" />
+    <Content Include="SKY-3d.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -96,10 +102,6 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Papirus-Team-Papirus-Places-Folder-blue-visiting.ico" />
-    <Content Include="Program.cs.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

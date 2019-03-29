@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using WorkZoneLoad.Controller;
 using WorkZoneLoad.Models;
 
-using System.Net;
-
 namespace WorkZoneLoad
 {
     public enum LoggerOpcion
